@@ -1,13 +1,13 @@
 import sys
 import time
-import datetime
-import urllib.parse
-from enum import Enum
-appgwUrl = "https://ottapp-appgw-storage-a.environment.operator.tv3cloud.com/"
+import CachesRetriever
+
+appgwUrl = "https://ottapp-appgw-{type}-a.environment.operator.tv3cloud.com/"
 acceptedArgsKeys = ['--environment', '-env', '--channelMap', '-cm', '--help', '-help']
 envOperatorDict = {"int":"mr", "dev":"mr", "funk":"mr", "pprod":"mr"}
 channelMaps = []
 slot = "s1"
+env = "dev"
 
 def parseCmdArgs():
   sys.argv.pop(0) #remove the first argument from the list - it is usually the filename of the program being executed
@@ -29,14 +29,11 @@ def parseCmdArgs():
       
     if argKey == acceptedArgsKeys[0] or argKey == acceptedArgsKeys[1]:
       #environment
+      global env
       env = argValue
       if argValue not in envOperatorDict.keys():
         print("Specified environment is not recognized: " + env)
         return 1
-      global appgwUrl
-      appgwUrl = appgwUrl.replace("environment", str(env))
-      appgwUrl = appgwUrl.replace("operator", envOperatorDict.get(env))
-      print("appgw url set to: ", appgwUrl)
     elif argKey == acceptedArgsKeys[2] or argKey == acceptedArgsKeys[3]:
 		  #channelMap
       global channelMaps
@@ -45,47 +42,12 @@ def parseCmdArgs():
     elif argKey == acceptedArgsKeys[4] or argKey == acceptedArgsKeys[5]:
       #help
       return 1
-  
-  if len(channelMaps) <= 0:
-    print("Channel map id needs to be specified.")
-    return 1
 	
-#Functions to retrieve schedules
-def getChannelMapHubCatchupSchedules(appgwUrl, timestamp, channelMapId, popularityOrder = False):
-  cacheUrl = buildChannelMapHubCatchupCacheUrl(appgwUrl, timestamp, channelMapId, popularityOrder)
-  print("The channel map hub catchup cache url generated is : \n", cacheUrl)
-
-def buildChannelMapHubCatchupCacheUrl(appgwUrl, timestamp, channelMapId, popularityOrder = False):
-  utcDateStr = datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d')
-  blobContainerName = slot.lower() + "-catchup-data-" + utcDateStr
-  strOrderBy = "Popularity-" if popularityOrder else ""
-  cacheFileName = "channelmap-hub-" + strOrderBy + channelMapId + ".gz"
-  #format of the url: http://{appgwUrl}/catalogcache/{bloblContainerName}/channelmap-hub-[Popularity-]{channelMapId}.gz
-  cacheUrl = appgwUrl + "catalogcache/" + blobContainerName + "/" + cacheFileName
-  return cacheUrl
-
-def getPerStationCatchupSchedules(appgwUrl, requestedTimestamp, countPerStation, stations, top, popularityOrder = False):
-  cacheUrl = buildPerStationCatchupCacheUrl(appgwUrl, requestedTimestamp, countPerStation, stations, top, popularityOrder = False)
-  print("The getPerStationCatchupSchedules url generated is : \n", cacheUrl)
-  
-def buildPerStationCatchupCacheUrl(appgwUrl, requestedTimestamp, countPerStation, stations, top, popularityOrder = False):
-  params = {}
-  
-  dateStr = datetime.datetime.utcfromtimestamp(requestedTimestamp).strftime('%Y-%m-%dT%H:%M:%S.000Z')
-  params['requestedTime'] = dateStr
-  params['pivots'] = "Language|en"
-  params['countPerStation'] = countPerStation
-  params['$orderBy'] = "Popularity" if popularityOrder else ""
-  params['$stations'] = stations
-  params['$top'] = top
-  params['$lang'] = "en-US"
-  strUrlEncodedParams = urllib.parse.urlencode(params)
-  
-  return appgwUrl + slot.upper() + "/discovery/v3/feeds/catchup/pivot-items?" + strUrlEncodedParams
-  
-def getStationCatchupSchedules(requestedTime, stations, skip, top, popularityOrder = False):
-  pass
-#End of Functions to retrieve schedules
+def prepareAppgwUrl():
+  global appgwUrl
+  appgwUrl = appgwUrl.replace("environment", str(env))
+  appgwUrl = appgwUrl.replace("operator", envOperatorDict.get(env))
+  print("appgw url set to: ", appgwUrl)
 
 
 
@@ -101,6 +63,14 @@ def getStationCatchupSchedules(requestedTime, stations, skip, top, popularityOrd
 if parseCmdArgs() == 1:
   quit()
 
+if len(channelMaps) <= 0:
+  print("Channel map id needs to be specified.")
+  quit()
+  
+prepareAppgwUrl()
+
 nowTimeStamp = time.time()
-getChannelMapHubCatchupSchedules(appgwUrl, nowTimeStamp, channelMaps[0])
-getPerStationCatchupSchedules(appgwUrl, nowTimeStamp, 10, "2222", 10)
+CachesRetriever.getChannelMapHubCatchupSchedules(appgwUrl, slot, nowTimeStamp, channelMaps[0])
+stations = [1703911,1705992,1704240,1703535,1704647,2580743,2580745,2580740,2485189,2485054]
+CachesRetriever.getPerStationCatchupSchedules(appgwUrl, slot, nowTimeStamp, 10, stations, 9, True)
+CachesRetriever.getStationCatchupSchedules(appgwUrl, slot, nowTimeStamp, "1705992", 0, 100, True)
