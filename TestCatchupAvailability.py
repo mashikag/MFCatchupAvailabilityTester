@@ -9,6 +9,8 @@ channelMaps = []
 slot = "s1"
 env = "dev"
 
+stations = [1703911,1705992,1704240,1703535,1704647,2580743,2580745,2580740,2485189,2485054]
+
 def parseCmdArgs():
   sys.argv.pop(0) #remove the first argument from the list - it is usually the filename of the program being executed
   args = sys.argv
@@ -70,7 +72,7 @@ if len(channelMaps) <= 0:
 prepareAppgwUrl()
 
 nowTimeStamp = time.time()
-CachesRetriever.getChannelMapHubCatchupSchedules(appgwUrl, slot, nowTimeStamp, channelMaps[0])
-stations = [1703911,1705992,1704240,1703535,1704647,2580743,2580745,2580740,2485189,2485054]
-CachesRetriever.getPerStationCatchupSchedules(appgwUrl, slot, nowTimeStamp, 10, stations, 9, True)
-CachesRetriever.getStationCatchupSchedules(appgwUrl, slot, nowTimeStamp, "1705992", 0, 100, True)
+hubCacheRetriever = CachesRetriever.HubCacheRetriever(appgwUrl, slot)
+schedulesReq = hubCacheRetriever.getCache(nowTimeStamp, channelMaps[0])
+#CachesRetriever.getPerStationCatchupSchedules(appgwUrl, slot, nowTimeStamp, 10, stations, 9, True)
+#CachesRetriever.getStationCatchupSchedules(appgwUrl, slot, nowTimeStamp, "1705992", 0, 100, True)
