@@ -14,7 +14,7 @@ class HubCacheRetriever:
     cache = None
     self.lastRequestedUrl = cacheUrl
     try:
-      cache = urllib.request.urlopen(cacheUrl).read()
+      cache = urllib.request.urlopen(cacheUrl)
     except urllib.error.HTTPError:
       print("HTTPError when trying to obtain Hub Cache. URL:" + cacheUrl)
     return cache
@@ -40,7 +40,7 @@ class PerStationCacheRetriever:
     cache = None
     self.lastRequestedUrl = cacheUrl
     try:
-      cache = urllib.request.urlopen(cacheUrl).read()
+      cache = urllib.request.urlopen(cacheUrl)
     except urllib.error.HTTPError:
       print("HTTPError when trying to obtain PerStation Cache. URL:" + cacheUrl)
     return cache
@@ -70,7 +70,7 @@ class StationCacheRetriever:
     cache = None
     self.lastRequestedUrl = cacheUrl
     try:
-      cache = urllib.request.urlopen(cacheUrl).read()
+      cache = urllib.request.urlopen(cacheUrl)
     except urllib.error.HTTPError:
       print("HTTPError when trying to obtain Station Cache. URL:" + cacheUrl)
     return cache

@@ -74,5 +74,6 @@ prepareAppgwUrl()
 nowTimeStamp = time.time()
 hubCacheRetriever = CachesRetriever.HubCacheRetriever(appgwUrl, slot)
 schedulesReq = hubCacheRetriever.getCache(nowTimeStamp, channelMaps[0])
+
 #CachesRetriever.getPerStationCatchupSchedules(appgwUrl, slot, nowTimeStamp, 10, stations, 9, True)
 #CachesRetriever.getStationCatchupSchedules(appgwUrl, slot, nowTimeStamp, "1705992", 0, 100, True)
