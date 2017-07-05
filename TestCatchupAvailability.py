@@ -1,6 +1,7 @@
 import sys
 import time
 import CachesRetriever
+import CachesStore
 
 appgwUrl = "https://ottapp-appgw-{type}-a.environment.operator.tv3cloud.com/"
 acceptedArgsKeys = ['--environment', '-env', '--channelMap', '-cm', '--help', '-help']
@@ -73,7 +74,15 @@ prepareAppgwUrl()
 
 nowTimeStamp = time.time()
 hubCacheRetriever = CachesRetriever.HubCacheRetriever(appgwUrl, slot)
-schedulesReq = hubCacheRetriever.getCache(nowTimeStamp, channelMaps[0])
+cacheStrData = hubCacheRetriever.getCache(nowTimeStamp, channelMaps[0])
+
+hubCache = CachesStore.HubCache(cacheStrData)
+print(hubCache.toString())
+
+currenntCacheInterval = hubCache.getCurrentCacheInterval()
+for schedule in currenntCacheInterval.getSchedules():
+  print(schedule.toString())
+
 
 #CachesRetriever.getPerStationCatchupSchedules(appgwUrl, slot, nowTimeStamp, 10, stations, 9, True)
 #CachesRetriever.getStationCatchupSchedules(appgwUrl, slot, nowTimeStamp, "1705992", 0, 100, True)

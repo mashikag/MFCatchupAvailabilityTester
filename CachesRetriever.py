@@ -1,6 +1,7 @@
 import datetime
 import urllib.parse
 import urllib.request
+import zlib
 
 #Functions to retrieve schedules
 class HubCacheRetriever: 
@@ -14,7 +15,9 @@ class HubCacheRetriever:
     cache = None
     self.lastRequestedUrl = cacheUrl
     try:
-      cache = urllib.request.urlopen(cacheUrl)
+      compressedCache = urllib.request.urlopen(cacheUrl)
+      decompressedData = zlib.decompress(compressedCache.read(), 16+zlib.MAX_WBITS)
+      cache = decompressedData.decode('utf-8')
     except urllib.error.HTTPError:
       print("HTTPError when trying to obtain Hub Cache. URL:" + cacheUrl)
     return cache
