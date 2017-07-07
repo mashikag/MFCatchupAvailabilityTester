@@ -14,7 +14,8 @@ class CatchupSchedule:
   def getPlayInfoUri(self):
     scheduledStartTime = "ScheduledStartTime=" + self.getPlayInfoDateString(self._startUtc)
     stationId = "stationid=" + self._stationId
-    uri = "dvrproxy/catchup/playinfo?" + scheduledStartTime + "&" + stationId
+    uri = "/dvrproxy/catchup/playinfo?" + scheduledStartTime + "&" + stationId
+    return uri
     
   def getPlayInfoDateString(self, date):
     if date.microsecond is not 0:

@@ -7,10 +7,9 @@ class HubCache:
   
   def __init__(self, strData):
     self.cache = json.loads(strData)
-    print(len(self.cache))
-    self.splitHubCacheToIntervals()
+    self._splitHubCacheToIntervals()
     print("Retrived " + str(len(self._cacheIntervals)) + " cache intervals.")
-    if not self.updateCurrentCacheInterval():
+    if not self._updateCurrentCacheInterval():
       print("Failed to find current cache interval in the hub cache.")
     
   def toString(self):
@@ -23,24 +22,25 @@ class HubCache:
       objStr += "NOT GOOD - no currentCacheInterval!"
     print(objStr)
     
-  def splitHubCacheToIntervals(self):
+  def _splitHubCacheToIntervals(self):
     self._cacheIntervals = []
     for cacheInterval in self.cache:
       self._cacheIntervals.append(HubCacheInterval(cacheInterval))
       
-  def updateCurrentCacheInterval(self):
+  def _updateCurrentCacheInterval(self):
     self._currentCacheInterval = None
     utcNow = datetime.datetime.utcnow()
     for cacheInterval in self._cacheIntervals:
-      print("utcNow: " + datetime.datetime.strftime(utcNow, HubCache.hubCacheDateFormat) + "  --- startTime: " + datetime.datetime.strftime(cacheInterval.getStartTime(), HubCache.hubCacheDateFormat))
       if utcNow >= cacheInterval.getStartTime() and utcNow < cacheInterval.getEndTime():
         self._currentCacheInterval = cacheInterval
         break
     return self._currentCacheInterval
     
   def getCurrentCacheInterval(self):
+    self._updateCurrentCacheInterval()
     return self._currentCacheInterval
     
+###############################################################################################################################################################
 class HubCacheInterval:
   def __init__(self, intervalData):
     self._startTime = datetime.datetime.strptime(intervalData['StartTime'], HubCache.hubCacheDateFormat)
@@ -51,8 +51,8 @@ class HubCacheInterval:
     self._schedules = []
     for schedule in schedulesData:
       stationId = schedule['StationId']
-      startUtc = schedule['StartUtc']
-      endUtc = schedule['EndUtc']
+      startUtc = datetime.datetime.strptime(schedule['StartUtc'], HubCache.hubCacheDateFormat)
+      endUtc = datetime.datetime.strptime(schedule['EndUtc'], HubCache.hubCacheDateFormat)
       programId = schedule['ProgramId']
       name = schedule['Name']
       self._schedules.append(CatchupSchedule.CatchupSchedule(stationId, startUtc, endUtc, programId, name))
@@ -65,3 +65,8 @@ class HubCacheInterval:
     
   def getSchedules(self):
     return self._schedules
+    
+  def toString(self):
+    objStr = "HubCacheInterval Instance\n"
+    objStr += "startTime: " + datetime.datetime.strftime(self._startTime, HubCache.hubCacheDateFormat) + "\n"
+    objStr += "endTime: " + datetime.datetime.strftime(self._endTime, HubCache.hubCacheDateFormat) + "\n"
